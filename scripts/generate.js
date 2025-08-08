@@ -84,9 +84,9 @@ const footer = `---\n` + subHeading + stats + contribute;
 // README.md
 let readmeContent =
   '<div align="center"><h1>Frontend Encyclopedia</h1></div>\n' +
-  subHeading + '<div width="min-content">\n\n';
+  subHeading;
 
-const readmeTableFormat = `
+const tableFormat = `
 | Name | Type | Author | Year |
 |------|------|--------|------|
 `;
@@ -96,7 +96,7 @@ for (const key in data) {
 
   const terms = data[key]
     .map((term) => {
-      let nameWithLink = term.url ? `| [${term.name}](${term.url})` : term.name;
+      let nameWithLink = '|' + (term.url ? `[${term.name}](${term.url})` : term.name);
       const types = Array.isArray(term.type) ? term.type.join(', ') : term.type;
 
       const dateInfo = getAdditionalInfo(term);
@@ -113,9 +113,8 @@ for (const key in data) {
     .sort((a, b) =>
       a.toLowerCase().localeCompare(b.toLowerCase())
     );
-  readmeContent += sectionHeader + readmeTableFormat + terms.join('\n') + '\n\n';
+  readmeContent += sectionHeader + tableFormat + terms.join('\n') + '\n\n';
 }
-readmeContent += `</div>\n\n`;
 readmeContent += footer;
 
 fs.writeFileSync('README.md', readmeContent);
@@ -126,16 +125,12 @@ const categories = {};
 
 for (const key in data) {
   data[key].forEach((term) => {
-    let dateInfo = getAdditionalInfo(term);
-    const types = Array.isArray(term.type)
-      ? term.type
-      : [term.type];
+    const types = Array.isArray(term.type) ? term.type : [term.type];
+
     types.forEach((type) => {
       if (type) {
         if (!categories[type]) categories[type] = [];
-        let nameWithLink = term.url
-          ? `[${term.name}](${term.url})`
-          : term.name;
+        let nameWithLink = term.url ? `[${term.name}](${term.url})` : term.name;
 
         const dateInfo = getAdditionalInfo(term);
         const authorInfo = getAuthorInfo(term);
@@ -174,34 +169,23 @@ categoriesContent += footer;
 fs.writeFileSync('categories.md', categoriesContent);
 
 // chronological.md
-
 const chronological = {};
 
 for (const key in data) {
   data[key].forEach((term) => {
-    let dateInfo = getAdditionalInfo(term);
     let yearCreated = term.year_created;
-    const types = Array.isArray(term.type)
-      ? term.type.join(', ')
-      : term.type;
+    const types = Array.isArray(term.type) ? term.type.join(', ') : term.type;
 
     if (yearCreated && types) {
-      let nameWithLink = term.url
-        ? `[${term.name}](${term.url})`
-        : term.name;
+      let nameWithLink = "|" + (term.url ? `[${term.name}](${term.url})` : term.name);
 
-      if (types) {
-        nameWithLink += `: ${types}`;
-      }
+      nameWithLink += ` | ${types} `;
 
       const dateInfo = getAdditionalInfo(term);
       const authorInfo = getAuthorInfo(term);
-      if (authorInfo) {
-        nameWithLink += ` by ${authorInfo}`;
-      }
-      if (dateInfo) {
-        nameWithLink += ` ${dateInfo}`;
-      }
+
+      nameWithLink += `| ${authorInfo} `;
+      nameWithLink += `| ${dateInfo} `;
 
       if (!chronological[yearCreated])
         chronological[yearCreated] = [];
@@ -219,9 +203,9 @@ Object.keys(chronological)
   .sort((a, b) => a - b)
   .forEach((year) => {
     chronologicalContent += `### ${year}\n`;
-    chronologicalContent +=
+    chronologicalContent += tableFormat + 
       chronological[year]
-        .map((item) => `- ${item}`)
+        .map((item) => `${item}`)
         .join('\n') + '\n\n';
   });
 
