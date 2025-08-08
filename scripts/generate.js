@@ -16,7 +16,6 @@ function getAdditionalInfo(term) {
   } else if (term.year_created) {
     dateInfo = `(${yearCreated}${noteInfo})`;
   }
-
   return dateInfo;
 }
 
@@ -83,42 +82,40 @@ Either one of the following must be true:
 const footer = `---\n` + subHeading + stats + contribute;
 
 // README.md
-
 let readmeContent =
   '<div align="center"><h1>Frontend Encyclopedia</h1></div>\n' +
-  subHeading;
+  subHeading + '<div width="min-content">\n\n';
+
+const readmeTableFormat = `
+| Name | Type | Author | Year |
+|------|------|--------|------|
+`;
 
 for (const key in data) {
-  readmeContent += `### ${key}\n`;
+  const sectionHeader = `### ${key}\n`;
+
   const terms = data[key]
     .map((term) => {
-      ``;
-      let nameWithLink = term.url
-        ? `[${term.name}](${term.url})`
-        : term.name;
-      const types = Array.isArray(term.type)
-        ? term.type.join(', ')
-        : term.type;
+      let nameWithLink = term.url ? `| [${term.name}](${term.url})` : term.name;
+      const types = Array.isArray(term.type) ? term.type.join(', ') : term.type;
+
       const dateInfo = getAdditionalInfo(term);
       const authorInfo = getAuthorInfo(term);
-      if (types) {
-        nameWithLink += `: ${types}`;
-      }
-      if (authorInfo) {
-        nameWithLink += ` by ${authorInfo}`;
-      }
-      if (dateInfo) {
-        nameWithLink += ` ${dateInfo}`;
-      }
+
+      nameWithLink += ` | ${types}`;
+      nameWithLink += ` | ${authorInfo}`;
+      nameWithLink += ` | ${dateInfo}`;
+
       return nameWithLink;
     })
-    .map((item) => `- ${item}`)
+    .map((item) => `${item} |`)
     // sort by name case-insensitive
     .sort((a, b) =>
       a.toLowerCase().localeCompare(b.toLowerCase())
     );
-  readmeContent += terms.join('\n') + '\n\n';
+  readmeContent += sectionHeader + readmeTableFormat + terms.join('\n') + '\n\n';
 }
+readmeContent += `</div>\n\n`;
 readmeContent += footer;
 
 fs.writeFileSync('README.md', readmeContent);
