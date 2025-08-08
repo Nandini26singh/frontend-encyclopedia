@@ -86,7 +86,7 @@ let readmeContent =
   '<div align="center"><h1>Frontend Encyclopedia</h1></div>\n' +
   subHeading;
 
-const tableFormat = `
+const readmeAndChronologicalTableFormat = `
 | Name | Type | Author | Year |
 |------|------|--------|------|
 `;
@@ -113,7 +113,7 @@ for (const key in data) {
     .sort((a, b) =>
       a.toLowerCase().localeCompare(b.toLowerCase())
     );
-  readmeContent += sectionHeader + tableFormat + terms.join('\n') + '\n\n';
+  readmeContent += sectionHeader + readmeAndChronologicalTableFormat + terms.join('\n') + '\n\n';
 }
 readmeContent += footer;
 
@@ -123,6 +123,11 @@ fs.writeFileSync('README.md', readmeContent);
 
 const categories = {};
 
+const categoriesTableFormat = `
+| Name | Author | Year |
+|------|--------|------|
+`;
+
 for (const key in data) {
   data[key].forEach((term) => {
     const types = Array.isArray(term.type) ? term.type : [term.type];
@@ -130,16 +135,14 @@ for (const key in data) {
     types.forEach((type) => {
       if (type) {
         if (!categories[type]) categories[type] = [];
-        let nameWithLink = term.url ? `[${term.name}](${term.url})` : term.name;
+        let nameWithLink = "| " + (term.url ? `[${term.name}](${term.url})` : term.name);
 
         const dateInfo = getAdditionalInfo(term);
         const authorInfo = getAuthorInfo(term);
-        if (authorInfo) {
-          nameWithLink += ` by ${authorInfo}`;
-        }
-        if (dateInfo) {
-          nameWithLink += ` ${dateInfo}`;
-        }
+
+        nameWithLink += ` | ${authorInfo} `;
+        nameWithLink += `| ${dateInfo} |`;
+
         categories[type].push(nameWithLink);
       }
     });
@@ -154,9 +157,9 @@ Object.keys(categories)
   .sort()
   .forEach((category) => {
     categoriesContent += `### ${category}\n`;
-    categoriesContent +=
+    categoriesContent += categoriesTableFormat +
       categories[category]
-        .map((item) => `- ${item}`)
+        .map((item) => `${item}`)
         // sort by name case-insensitive
         .sort((a, b) =>
           a.toLowerCase().localeCompare(b.toLowerCase())
@@ -179,11 +182,10 @@ for (const key in data) {
     if (yearCreated && types) {
       let nameWithLink = "|" + (term.url ? `[${term.name}](${term.url})` : term.name);
 
-      nameWithLink += ` | ${types} `;
-
       const dateInfo = getAdditionalInfo(term);
       const authorInfo = getAuthorInfo(term);
 
+      nameWithLink += ` | ${types} `;
       nameWithLink += `| ${authorInfo} `;
       nameWithLink += `| ${dateInfo} `;
 
@@ -203,7 +205,7 @@ Object.keys(chronological)
   .sort((a, b) => a - b)
   .forEach((year) => {
     chronologicalContent += `### ${year}\n`;
-    chronologicalContent += tableFormat + 
+    chronologicalContent += readmeAndChronologicalTableFormat +
       chronological[year]
         .map((item) => `${item}`)
         .join('\n') + '\n\n';
