@@ -18,9 +18,9 @@ function getAdditionalInfo(term) {
     ? `[${term.year_deprecated}](${term.year_deprecated_source})`
     : term.year_deprecated;
   if (term.year_created && term.year_deprecated) {
-    dateInfo = `(${yearCreated} - ${yearDeprecated})`;
+    dateInfo = `${yearCreated} - ${yearDeprecated}`;
   } else if (term.year_created) {
-    dateInfo = `(${yearCreated})`;
+    dateInfo = `${yearCreated}`;
   }
   return dateInfo;
 }
