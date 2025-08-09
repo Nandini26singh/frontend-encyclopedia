@@ -2,9 +2,15 @@ const fs = require('fs');
 
 const data = require('./data.json');
 
+function getNote(term) {
+  if (!term.note) {
+    return '';
+  }
+  return `${term.note}`;
+
+}
 function getAdditionalInfo(term) {
   let dateInfo = ``;
-  let noteInfo = term.note ? `, ${term.note}` : '';
   let yearCreated = term.year_created_source
     ? `[${term.year_created}](${term.year_created_source})`
     : term.year_created;
@@ -12,9 +18,9 @@ function getAdditionalInfo(term) {
     ? `[${term.year_deprecated}](${term.year_deprecated_source})`
     : term.year_deprecated;
   if (term.year_created && term.year_deprecated) {
-    dateInfo = `(${yearCreated} - ${yearDeprecated}${noteInfo})`;
+    dateInfo = `(${yearCreated} - ${yearDeprecated})`;
   } else if (term.year_created) {
-    dateInfo = `(${yearCreated}${noteInfo})`;
+    dateInfo = `(${yearCreated})`;
   }
   return dateInfo;
 }
@@ -87,8 +93,8 @@ let readmeContent =
   subHeading;
 
 const readmeAndChronologicalTableFormat = `
-| Name | Type | Author | Year |
-|------|------|--------|------|
+| Name | Type | Author | Year | Note |
+|------|------|--------|------|------|
 `;
 
 for (const key in data) {
@@ -101,10 +107,12 @@ for (const key in data) {
 
       const dateInfo = getAdditionalInfo(term);
       const authorInfo = getAuthorInfo(term);
+      const noteInfo = getNote(term);
 
       nameWithLink += ` | ${types}`;
       nameWithLink += ` | ${authorInfo}`;
       nameWithLink += ` | ${dateInfo}`;
+      nameWithLink += ` | ${noteInfo}`;
 
       return nameWithLink;
     })
@@ -124,8 +132,8 @@ fs.writeFileSync('README.md', readmeContent);
 const categories = {};
 
 const categoriesTableFormat = `
-| Name | Author | Year |
-|------|--------|------|
+| Name | Author | Year | Note |
+|------|--------|------|------|
 `;
 
 for (const key in data) {
@@ -139,9 +147,11 @@ for (const key in data) {
 
         const dateInfo = getAdditionalInfo(term);
         const authorInfo = getAuthorInfo(term);
+        const noteInfo = getNote(term);
 
         nameWithLink += ` | ${authorInfo} `;
-        nameWithLink += `| ${dateInfo} |`;
+        nameWithLink += `| ${dateInfo}`;
+        nameWithLink += ` | ${noteInfo} |`;
 
         categories[type].push(nameWithLink);
       }
@@ -184,10 +194,12 @@ for (const key in data) {
 
       const dateInfo = getAdditionalInfo(term);
       const authorInfo = getAuthorInfo(term);
+      const noteInfo = getNote(term);
 
       nameWithLink += ` | ${types} `;
       nameWithLink += `| ${authorInfo} `;
-      nameWithLink += `| ${dateInfo} `;
+      nameWithLink += `| ${dateInfo}`;
+      nameWithLink += ` | ${noteInfo} |`;
 
       if (!chronological[yearCreated])
         chronological[yearCreated] = [];
