@@ -2,9 +2,15 @@ const fs = require('fs');
 
 const data = require('./data.json');
 
+function getNote(term) {
+  if (!term.note) {
+    return '';
+  }
+  return `${term.note}`;
+
+}
 function getAdditionalInfo(term) {
   let dateInfo = ``;
-  let noteInfo = term.note ? `, ${term.note}` : '';
   let yearCreated = term.year_created_source
     ? `[${term.year_created}](${term.year_created_source})`
     : term.year_created;
@@ -12,11 +18,10 @@ function getAdditionalInfo(term) {
     ? `[${term.year_deprecated}](${term.year_deprecated_source})`
     : term.year_deprecated;
   if (term.year_created && term.year_deprecated) {
-    dateInfo = `(${yearCreated} - ${yearDeprecated}${noteInfo})`;
+    dateInfo = `${yearCreated} - ${yearDeprecated}`;
   } else if (term.year_created) {
-    dateInfo = `(${yearCreated}${noteInfo})`;
+    dateInfo = `${yearCreated}`;
   }
-
   return dateInfo;
 }
 
@@ -83,41 +88,40 @@ Either one of the following must be true:
 const footer = `---\n` + subHeading + stats + contribute;
 
 // README.md
-
 let readmeContent =
   '<div align="center"><h1>Frontend Encyclopedia</h1></div>\n' +
   subHeading;
 
+const readmeAndChronologicalTableFormat = `
+| Name | Type | Author | Year | Note |
+|------|------|--------|------|------|
+`;
+
 for (const key in data) {
-  readmeContent += `### ${key}\n`;
+  const sectionHeader = `### ${key}\n`;
+
   const terms = data[key]
     .map((term) => {
-      ``;
-      let nameWithLink = term.url
-        ? `[${term.name}](${term.url})`
-        : term.name;
-      const types = Array.isArray(term.type)
-        ? term.type.join(', ')
-        : term.type;
+      let nameWithLink = '|' + (term.url ? `[${term.name}](${term.url})` : term.name);
+      const types = Array.isArray(term.type) ? term.type.join(', ') : term.type;
+
       const dateInfo = getAdditionalInfo(term);
       const authorInfo = getAuthorInfo(term);
-      if (types) {
-        nameWithLink += `: ${types}`;
-      }
-      if (authorInfo) {
-        nameWithLink += ` by ${authorInfo}`;
-      }
-      if (dateInfo) {
-        nameWithLink += ` ${dateInfo}`;
-      }
+      const noteInfo = getNote(term);
+
+      nameWithLink += ` | ${types}`;
+      nameWithLink += ` | ${authorInfo}`;
+      nameWithLink += ` | ${dateInfo}`;
+      nameWithLink += ` | ${noteInfo}`;
+
       return nameWithLink;
     })
-    .map((item) => `- ${item}`)
+    .map((item) => `${item} |`)
     // sort by name case-insensitive
     .sort((a, b) =>
       a.toLowerCase().localeCompare(b.toLowerCase())
     );
-  readmeContent += terms.join('\n') + '\n\n';
+  readmeContent += sectionHeader + readmeAndChronologicalTableFormat + terms.join('\n') + '\n\n';
 }
 readmeContent += footer;
 
@@ -127,27 +131,28 @@ fs.writeFileSync('README.md', readmeContent);
 
 const categories = {};
 
+const categoriesTableFormat = `
+| Name | Author | Year | Note |
+|------|--------|------|------|
+`;
+
 for (const key in data) {
   data[key].forEach((term) => {
-    let dateInfo = getAdditionalInfo(term);
-    const types = Array.isArray(term.type)
-      ? term.type
-      : [term.type];
+    const types = Array.isArray(term.type) ? term.type : [term.type];
+
     types.forEach((type) => {
       if (type) {
         if (!categories[type]) categories[type] = [];
-        let nameWithLink = term.url
-          ? `[${term.name}](${term.url})`
-          : term.name;
+        let nameWithLink = "| " + (term.url ? `[${term.name}](${term.url})` : term.name);
 
         const dateInfo = getAdditionalInfo(term);
         const authorInfo = getAuthorInfo(term);
-        if (authorInfo) {
-          nameWithLink += ` by ${authorInfo}`;
-        }
-        if (dateInfo) {
-          nameWithLink += ` ${dateInfo}`;
-        }
+        const noteInfo = getNote(term);
+
+        nameWithLink += ` | ${authorInfo} `;
+        nameWithLink += `| ${dateInfo}`;
+        nameWithLink += ` | ${noteInfo} |`;
+
         categories[type].push(nameWithLink);
       }
     });
@@ -162,9 +167,9 @@ Object.keys(categories)
   .sort()
   .forEach((category) => {
     categoriesContent += `### ${category}\n`;
-    categoriesContent +=
+    categoriesContent += categoriesTableFormat +
       categories[category]
-        .map((item) => `- ${item}`)
+        .map((item) => `${item}`)
         // sort by name case-insensitive
         .sort((a, b) =>
           a.toLowerCase().localeCompare(b.toLowerCase())
@@ -177,34 +182,24 @@ categoriesContent += footer;
 fs.writeFileSync('categories.md', categoriesContent);
 
 // chronological.md
-
 const chronological = {};
 
 for (const key in data) {
   data[key].forEach((term) => {
-    let dateInfo = getAdditionalInfo(term);
     let yearCreated = term.year_created;
-    const types = Array.isArray(term.type)
-      ? term.type.join(', ')
-      : term.type;
+    const types = Array.isArray(term.type) ? term.type.join(', ') : term.type;
 
     if (yearCreated && types) {
-      let nameWithLink = term.url
-        ? `[${term.name}](${term.url})`
-        : term.name;
-
-      if (types) {
-        nameWithLink += `: ${types}`;
-      }
+      let nameWithLink = "|" + (term.url ? `[${term.name}](${term.url})` : term.name);
 
       const dateInfo = getAdditionalInfo(term);
       const authorInfo = getAuthorInfo(term);
-      if (authorInfo) {
-        nameWithLink += ` by ${authorInfo}`;
-      }
-      if (dateInfo) {
-        nameWithLink += ` ${dateInfo}`;
-      }
+      const noteInfo = getNote(term);
+
+      nameWithLink += ` | ${types} `;
+      nameWithLink += `| ${authorInfo} `;
+      nameWithLink += `| ${dateInfo}`;
+      nameWithLink += ` | ${noteInfo} |`;
 
       if (!chronological[yearCreated])
         chronological[yearCreated] = [];
@@ -222,9 +217,9 @@ Object.keys(chronological)
   .sort((a, b) => a - b)
   .forEach((year) => {
     chronologicalContent += `### ${year}\n`;
-    chronologicalContent +=
+    chronologicalContent += readmeAndChronologicalTableFormat +
       chronological[year]
-        .map((item) => `- ${item}`)
+        .map((item) => `${item}`)
         .join('\n') + '\n\n';
   });
 
